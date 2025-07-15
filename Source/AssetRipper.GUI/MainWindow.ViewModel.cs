@@ -10,6 +10,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO.Compression;
 
 namespace AssetRipper.GUI
 {
@@ -170,6 +171,36 @@ namespace AssetRipper.GUI
 			string[]? filesDropped = e.Data.GetFileNames()?.ToArray();
 
 			DoLoad(filesDropped);
+		}
+
+		private void DoLoadArchives(string[]? filesDropped)
+		{
+			if (!Directory.Exists("temp"))
+			{
+				Directory.CreateDirectory("temp");
+			}
+
+			string path = "temp/ZIP_COMBINE_" + DateTime.Now.ToString("yyyyMMddHHmm");
+
+			if (filesDropped == null || filesDropped.Length < 1)
+			{
+				return;
+			}
+
+			try
+			{
+				foreach(string v in filesDropped)
+				{
+					Logger.Log(LogType.Info, LogCategory.Import, $"Unzipping '{v}'");
+					ZipFile.ExtractToDirectory(v, path, true);
+				}
+
+				DoLoad([path]);
+			}
+			catch (Exception ex)
+			{
+				this.ShowPopup($"Exception on combining archives: {ex.Message}", MainWindow.Instance.LocalizationManager["error"]);
+			}
 		}
 
 		private void DoLoad(string[]? filesDropped)
@@ -401,6 +432,22 @@ namespace AssetRipper.GUI
 			if (result.Length > 0)
 			{
 				DoLoad(result);
+			}
+		}
+
+		//Called from UI
+		public async void ShowOpenFileDialogZipArchives()
+		{
+			FilePickerOpenOptions options = new() { AllowMultiple = true };
+			IReadOnlyList<IStorageFile> fileList = await MainWindow.Instance.StorageProvider.OpenFilePickerAsync(options);
+
+			string[] result = fileList.Select(f => f.Path.LocalPath)
+				.Where(s => !string.IsNullOrEmpty(s))
+				.ToArray();
+
+			if (result.Length > 0)
+			{
+				DoLoadArchives(result);
 			}
 		}
 

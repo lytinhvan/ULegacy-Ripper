@@ -269,7 +269,7 @@ namespace AssetRipper.GUI
 				else
 				{
 					//this.ShowPopup(string.Format(MainWindow.Instance.LocalizationManager["error_importing_with_reason"], error.Message), MainWindow.Instance.LocalizationManager["error"]);
-					this.ShowPopup(MainWindow.Instance.LocalizationManager["check_log_for_more_details"], MainWindow.Instance.LocalizationManager["error"]);
+					this.ShowPopup($"Exception on importing game: {error.Message}", MainWindow.Instance.LocalizationManager["error"]);
 				}
 			});
 		}

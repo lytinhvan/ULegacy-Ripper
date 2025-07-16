@@ -33,6 +33,8 @@ namespace AssetRipper.GUI
 #endif
 
 			AddHandler(DragDrop.DropEvent, (sender, args) => VM.OnFileDropped(args));
+
+			VM.ShaderExportMode = Export.UnityProjects.Configuration.ShaderExportMode.Decompile;
 		}
 
 		protected override void OnDataContextChanged(EventArgs e)

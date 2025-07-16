@@ -175,32 +175,44 @@ namespace AssetRipper.GUI
 
 		private void DoLoadArchives(string[]? filesDropped)
 		{
-			if (!Directory.Exists("temp"))
-			{
-				Directory.CreateDirectory("temp");
-			}
-
-			string path = "temp/ZIP_COMBINE_" + DateTime.Now.ToString("yyyyMMddHHmm");
-
 			if (filesDropped == null || filesDropped.Length < 1)
 			{
 				return;
 			}
 
-			try
+			new Thread(() =>
 			{
-				foreach(string v in filesDropped)
-				{
-					Logger.Log(LogType.Info, LogCategory.Import, $"Unzipping '{v}'");
-					ZipFile.ExtractToDirectory(v, path, true);
-				}
+				string path = "temp/ZIP_COMBINE_" + DateTime.Now.ToString("yyyyMMddHHmm");
 
-				DoLoad([path]);
-			}
-			catch (Exception ex)
+				try
+				{
+					foreach (string v in filesDropped)
+					{
+						Logger.Log(LogType.Info, LogCategory.Import, $"Decompressing '{v}'");
+
+						if (!File.Exists(v))
+						{
+							Logger.Log(LogType.Error, LogCategory.Import, $"File '{v}' does not exist.");
+							throw new Exception($"File '{v}' does not exist. Have you tried importing multiple folders?");
+						}
+
+						LoadingText = "Decompressing " + v;
+
+						ZipFile.ExtractToDirectory(v, path, true);
+					}
+
+					DoLoad([path]);
+				}
+				catch (Exception ex)
+				{
+					LoadingText = string.Empty;
+					this.ShowPopup($"Exception on combining archives: {ex.Message}", MainWindow.Instance.LocalizationManager["error"]);
+				}
+			})
 			{
-				this.ShowPopup($"Exception on combining archives: {ex.Message}", MainWindow.Instance.LocalizationManager["error"]);
-			}
+				IsBackground = true,
+				Name = "Background Decompressing Thread"
+			}.Start();
 		}
 
 		private void DoLoad(string[]? filesDropped)
@@ -210,12 +222,19 @@ namespace AssetRipper.GUI
 				return;
 			}
 
+			// multi zip support
+			if (filesDropped.Length > 1)
+			{
+				DoLoadArchives(filesDropped);
+				return;
+			}
+
+			string gamePath = filesDropped[0];
+
 			_ripper.ResetData();
 			SelectedAsset?.Dispose();
 			SelectedAsset = null;
 			_assetContainer = null;
-
-			string gamePath = filesDropped[0];
 
 			HasFile = true;
 			HasLoaded = false;
@@ -432,22 +451,6 @@ namespace AssetRipper.GUI
 			if (result.Length > 0)
 			{
 				DoLoad(result);
-			}
-		}
-
-		//Called from UI
-		public async void ShowOpenFileDialogZipArchives()
-		{
-			FilePickerOpenOptions options = new() { AllowMultiple = true };
-			IReadOnlyList<IStorageFile> fileList = await MainWindow.Instance.StorageProvider.OpenFilePickerAsync(options);
-
-			string[] result = fileList.Select(f => f.Path.LocalPath)
-				.Where(s => !string.IsNullOrEmpty(s))
-				.ToArray();
-
-			if (result.Length > 0)
-			{
-				DoLoadArchives(result);
 			}
 		}
 

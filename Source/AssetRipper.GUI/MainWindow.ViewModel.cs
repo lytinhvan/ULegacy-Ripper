@@ -441,7 +441,7 @@ namespace AssetRipper.GUI
 		//Called from UI
 		public async void ShowOpenFileDialog()
 		{
-			FilePickerOpenOptions options = new() { AllowMultiple = false };
+			FilePickerOpenOptions options = new() { AllowMultiple = true };
 			IReadOnlyList<IStorageFile> fileList = await MainWindow.Instance.StorageProvider.OpenFilePickerAsync(options);
 
 			string[] result = fileList.Select(f => f.Path.LocalPath)

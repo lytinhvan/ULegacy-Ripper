@@ -223,6 +223,11 @@ public abstract class AssetCollection : IReadOnlyCollection<IUnityObjectBase>, I
 
 	public bool TryGetAsset(int fileIndex, long pathID, [NotNullWhen(true)] out IUnityObjectBase? asset)
 	{
+		if (fileIndex < 0 || fileIndex > Dependencies.Count - 1)
+		{
+			asset = null;
+			return false;
+		}
 		AssetCollection? file = Dependencies[fileIndex];
 		if (file is not null)
 		{

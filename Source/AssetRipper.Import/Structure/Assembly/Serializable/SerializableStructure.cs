@@ -56,7 +56,11 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 				SerializableType.Field etalon = Type.GetField(i);
 				if (IsAvailable(etalon))
 				{
-					node.Add(etalon.Name, Fields[i].ExportYaml(container, etalon));
+					YamlNode yamlNode = Fields[i].ExportYaml(container, etalon);
+					if (yamlNode != null)
+					{
+						node.Add(etalon.Name, yamlNode);
+					}
 				}
 			}
 			return node;
@@ -107,14 +111,14 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 			catch (Exception ex)
 			{
 				LogMonoBehaviorReadException(this, ex);
-				WriteDebug(ref reader);
-				return false;
+				//WriteDebug(ref reader);
+				//return false;
 			}
 			if (reader.Position != reader.Length)
 			{
 				LogMonoBehaviourMismatch(this, reader.Position, reader.Length);
-				WriteDebug(ref reader);
-				return false;
+				//WriteDebug(ref reader);
+				//return false;
 			}
 			return true;
 		}

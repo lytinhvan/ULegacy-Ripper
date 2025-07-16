@@ -16,8 +16,24 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 	[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 	public record struct SerializableField(ulong PValue, object CValue)
 	{
+		private static List<PrimitiveType> supportedUnity4Types = new List<PrimitiveType>
+		{
+			PrimitiveType.Bool,
+			PrimitiveType.Byte,
+			PrimitiveType.Int,
+			PrimitiveType.Single,
+			PrimitiveType.Double,
+			PrimitiveType.String,
+			PrimitiveType.Complex
+		};
+
 		public void Read(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags, int depth, in SerializableType.Field etalon)
 		{
+			if (version.IsLess(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
+			{
+				return;
+			}
+
 			switch (etalon.Type.Type)
 			{
 				case PrimitiveType.Bool:
@@ -384,6 +400,11 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 
 		public YamlNode ExportYaml(IExportContainer container, in SerializableType.Field etalon)
 		{
+			if (container.Version.IsLess(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
+			{
+				return null;
+			}
+
 			if (etalon.IsArray)
 			{
 				if (etalon.Type.Type == PrimitiveType.Complex)
@@ -502,6 +523,11 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 
 		internal void CopyValues(SerializableField source, UnityVersion version, int depth, in SerializableType.Field etalon, PPtrConverter converter)
 		{
+			if (version.IsLess(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
+			{
+				return;
+			}
+
 			if (etalon.IsArray)
 			{
 				PValue = default;

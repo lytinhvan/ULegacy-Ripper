@@ -27,7 +27,7 @@ namespace AssetRipper.SourceGenerated.Extensions
 
 		public static bool IsDefault(this IStaticBatchInfo staticBatchInfo)
 		{
-			return staticBatchInfo != null && staticBatchInfo.FirstSubMesh == 0 && staticBatchInfo.SubMeshCount == 0;
+			return staticBatchInfo == null || (staticBatchInfo.FirstSubMesh == 0 && staticBatchInfo.SubMeshCount == 0);
 		}
 	}
 }

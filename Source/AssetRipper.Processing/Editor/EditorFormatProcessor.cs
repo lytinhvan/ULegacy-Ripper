@@ -7,9 +7,11 @@ using AssetRipper.Import.Structure.Assembly.Managers;
 using AssetRipper.IO.Files.SerializedFiles;
 using AssetRipper.Processing.AnimationClips;
 using AssetRipper.SourceGenerated.Classes.ClassID_1;
+using AssetRipper.SourceGenerated.Classes.ClassID_114;
 using AssetRipper.SourceGenerated.Classes.ClassID_129;
 using AssetRipper.SourceGenerated.Classes.ClassID_142;
 using AssetRipper.SourceGenerated.Classes.ClassID_147;
+using AssetRipper.SourceGenerated.Classes.ClassID_149;
 using AssetRipper.SourceGenerated.Classes.ClassID_157;
 using AssetRipper.SourceGenerated.Classes.ClassID_19;
 using AssetRipper.SourceGenerated.Classes.ClassID_196;
@@ -132,6 +134,19 @@ namespace AssetRipper.Processing.Editor
 						playerSettings.ApiCompatibilityLevelE = ApiCompatibilityLevel.NET_Unity_4_8;
 						playerSettings.ScriptingRuntimeVersionE = ScriptingRuntimeVersion.Latest;
 					}
+					break;
+				case ITagManager tagManager:
+					for (int i = 0; i < tagManager.Tags.Count; i++)
+					{
+						if (string.IsNullOrEmpty(tagManager.Tags[i]))
+						{
+							tagManager.Tags.RemoveAt(i--);
+						}
+					}
+					break;
+				case INetworkManager networkManager:
+					// I sure hope this doesn't break anything
+					networkManager.AssetToPrefab.Clear();
 					break;
 			}
 

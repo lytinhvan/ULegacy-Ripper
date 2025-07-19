@@ -455,6 +455,65 @@ namespace AssetRipper.GUI
 		}
 
 		//Called from UI
+		public async void ShowOpenFileDialogXAPK()
+		{
+			FilePickerOpenOptions options = new() { AllowMultiple = false };
+			IReadOnlyList<IStorageFile> fileList = await MainWindow.Instance.StorageProvider.OpenFilePickerAsync(options);
+
+			string[] result = fileList.Select(f => f.Path.LocalPath)
+				.Where(s => !string.IsNullOrEmpty(s))
+				.ToArray();
+
+			if (result.Length < 1) return;
+
+			_ = Task.Run(() =>
+			{
+				string xapkExtractPath = "temp/XAPK_" + DateTime.Now.ToString("yyyyMMddHHmm");
+				Directory.CreateDirectory(xapkExtractPath);
+
+				try
+				{
+					Logger.Log(LogType.Info, LogCategory.Import, $"Decompressing '{result[0]}'");
+
+					if (!File.Exists(result[0]))
+					{
+						Logger.Log(LogType.Error, LogCategory.Import, $"File '{result[0]}' does not exist.");
+						throw new Exception($"File '{result[0]}' does not exist. Have you tried importing multiple folders?");
+					}
+
+					LoadingText = "Decompressing " + result[0];
+
+					ZipFile.ExtractToDirectory(result[0], xapkExtractPath, true);
+
+					// Post Extract
+					if (!Directory.Exists(Path.Combine(xapkExtractPath, "Android/obb")))
+						throw new Exception("Unable to find Android/obb directory");
+
+					string? packageName = Path.GetFileName(Directory.GetDirectories(Path.Combine(xapkExtractPath, "Android/obb"))[0]);
+
+					if (packageName == null) throw new Exception("Package name is null");
+					Logger.Log(LogType.Info, LogCategory.Import, packageName);
+
+					string obbFile = Directory.GetFiles(Path.Combine(xapkExtractPath, "Android/obb", packageName))[0];
+
+					string xapkPostExtractPath = "temp/XAPK_POST_" + DateTime.Now.ToString("yyyyMMddHHmm");
+					Directory.CreateDirectory(xapkPostExtractPath);
+
+					ZipFile.ExtractToDirectory(obbFile, xapkPostExtractPath, true);
+
+					ZipFile.ExtractToDirectory(Path.Combine(xapkExtractPath, packageName + ".apk"), xapkPostExtractPath, true);
+
+					DoLoad([xapkPostExtractPath]);
+				}
+				catch (Exception ex)
+				{
+					LoadingText = string.Empty;
+					this.ShowPopup($"Exception on importing XAPK: {ex.Message}", MainWindow.Instance.LocalizationManager["error"]);
+				}
+			});
+		}
+
+		//Called from UI
 		public async void ShowOpenFolderDialog()
 		{
 			FolderPickerOpenOptions options = new() { AllowMultiple = false };

@@ -111,14 +111,14 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 			catch (Exception ex)
 			{
 				LogMonoBehaviorReadException(this, ex);
-				//WriteDebug(ref reader);
-				//return false;
+				WriteDebug(ref reader);
+				return false;
 			}
 			if (reader.Position != reader.Length)
 			{
 				LogMonoBehaviourMismatch(this, reader.Position, reader.Length);
-				//WriteDebug(ref reader);
-				//return false;
+				WriteDebug(ref reader);
+				return false;
 			}
 			return true;
 		}

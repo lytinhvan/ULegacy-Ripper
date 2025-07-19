@@ -64,6 +64,19 @@
                             </MultiBinding>
                         </MenuItem.IsEnabled>
                     </MenuItem>
+					
+					<!--File->Open XAPK-->
+                    <MenuItem Header="Open XAPK (EXPEREMENTAL)" Command="{Binding ShowOpenFileDialogXAPK}">
+                        <MenuItem.IsEnabled>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="!IsExporting" />
+                                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                                    <Binding Path="!HasFile" />
+                                    <Binding Path="HasLoaded" />
+                                </MultiBinding>
+                            </MultiBinding>
+                        </MenuItem.IsEnabled>
+                    </MenuItem>
 
 
 					<MenuItem Header="{i18n:Localize menu_file_reset}" Command="{Binding Reset}">

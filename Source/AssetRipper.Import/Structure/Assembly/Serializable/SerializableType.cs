@@ -9,11 +9,12 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 	{
 		public readonly struct Field
 		{
-			public Field(SerializableType type, int arrayDepth, string name)
+			public Field(SerializableType type, int arrayDepth, string name, bool isStruct = false)
 			{
 				Type = type;
 				ArrayDepth = arrayDepth;
 				Name = name;
+				IsStruct = isStruct;
 			}
 
 			public override string? ToString()
@@ -29,6 +30,7 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 			public SerializableType Type { get; }
 			public int ArrayDepth { get; }
 			public bool IsArray => ArrayDepth > 0;
+			public bool IsStruct { get; }
 			public string Name { get; }
 		}
 

@@ -85,10 +85,10 @@ namespace AssetRipper.Import.Structure.Assembly.Mono
 						fieldType = new MonoType(typeDefinition, typeCache);
 					}
 
-					return new Field(fieldType, arrayDepth, name);
+					return new Field(fieldType, arrayDepth, name, typeDefinition.IsStruct());
 
 				case CorLibTypeSignature corLibTypeSignature:
-					return new Field(SerializablePrimitiveType.GetOrCreate(corLibTypeSignature.ToPrimitiveType()), arrayDepth, name);
+					return new Field(SerializablePrimitiveType.GetOrCreate(corLibTypeSignature.ToPrimitiveType()), arrayDepth, name, corLibTypeSignature.IsStruct());
 
 				case SzArrayTypeSignature szArrayTypeSignature:
 					return MakeSerializableField(name, szArrayTypeSignature.BaseType, arrayDepth + 1, typeCache);
@@ -108,7 +108,7 @@ namespace AssetRipper.Import.Structure.Assembly.Mono
 				return MakeSerializableField(name, typeSignature.TypeArguments[0], arrayDepth + 1, typeCache);
 			}
 
-			return new(new MonoType(typeSignature, typeCache), arrayDepth, name);
+			return new(new MonoType(typeSignature, typeCache), arrayDepth, name, typeSignature.IsStruct());
 		}
 	}
 }

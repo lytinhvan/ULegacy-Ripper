@@ -34,6 +34,11 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 				return;
 			}
 
+			if (version.IsLess(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
+			{
+				return;
+			}
+
 			switch (etalon.Type.Type)
 			{
 				case PrimitiveType.Bool:
@@ -405,6 +410,11 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 				return null;
 			}
 
+			if (container.Version.IsLess(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
+			{
+				return null;
+			}
+
 			if (etalon.IsArray)
 			{
 				if (etalon.Type.Type == PrimitiveType.Complex)
@@ -524,6 +534,11 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 		internal void CopyValues(SerializableField source, UnityVersion version, int depth, in SerializableType.Field etalon, PPtrConverter converter)
 		{
 			if (version.IsLess(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
+			{
+				return;
+			}
+
+			if (version.IsLess(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
 			{
 				return;
 			}

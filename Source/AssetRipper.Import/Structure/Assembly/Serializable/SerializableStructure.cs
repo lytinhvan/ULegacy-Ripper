@@ -112,19 +112,24 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 			{
 				LogMonoBehaviorReadException(this, ex);
 				WriteDebug(ref reader);
-				return false;
+				//return false;
 			}
 			if (reader.Position != reader.Length)
 			{
 				LogMonoBehaviourMismatch(this, reader.Position, reader.Length);
 				WriteDebug(ref reader);
-				return false;
+				//return false;
 			}
 			return true;
 		}
 
 		private void WriteDebug(ref EndianSpanReader reader)
 		{
+			if (!Directory.Exists("DebugOutputs"))
+			{
+				Directory.CreateDirectory("DebugOutputs");
+			}
+
 			string name = Path.Combine("DebugOutputs", "MismatchedAsset_" + Type.Name);
 			string fullName;
 

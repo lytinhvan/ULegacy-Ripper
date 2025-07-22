@@ -185,7 +185,7 @@ namespace AssetRipper.Export.UnityProjects.Textures
 				}
 				Span<byte> outputSpan = bitmap.Bits.Slice(i * outputSize, outputSize);
 
-				if (!TryDecodeTexture(textureFormat, width, height, uncompressedSpan, outputSpan))
+				if (!TryDecodeTexture(textureFormat, width, height, uncompressedSpan, outputSpan, version))
 				{
 					bitmap = default;
 					return false;
@@ -194,7 +194,7 @@ namespace AssetRipper.Export.UnityProjects.Textures
 			return true;
 		}
 
-		private static bool TryDecodeTexture(TextureFormat textureFormat, int width, int height, ReadOnlySpan<byte> inputSpan, Span<byte> outputSpan)
+		private static bool TryDecodeTexture(TextureFormat textureFormat, int width, int height, ReadOnlySpan<byte> inputSpan, Span<byte> outputSpan, UnityVersion version)
 		{
 			switch (textureFormat)
 			{
@@ -319,8 +319,15 @@ namespace AssetRipper.Export.UnityProjects.Textures
 					return true;
 
 				case TextureFormat.ARGB4444:
-					RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(inputSpan, width, height, outputSpan);
-					//RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(inputSpan, width, height, outputSpan);
+					// I think this is right??
+					if (version.IsLess(4, 0, 0))
+					{
+						RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(inputSpan, width, height, outputSpan);
+					}
+					else
+					{
+						RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(inputSpan, width, height, outputSpan);
+					}
 					return true;
 
 				case TextureFormat.RGBA4444:

@@ -21,13 +21,21 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 			Fields = new SerializableField[type.FieldCount];
 		}
 
+		private List<string> debugLines = new List<string>();
+
 		public void Read(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags)
 		{
+			if (Depth == 0)
+			{
+				debugLines = new List<string>();
+			}
+			
 			for (int i = 0; i < Fields.Length; i++)
 			{
 				SerializableType.Field etalon = Type.GetField(i);
 				if (IsAvailable(etalon))
 				{
+					debugLines.Add($"{Type.FullName} - reading {etalon.Name} ({reader.Position}/{reader.Length})");
 					Fields[i].Read(ref reader, version, flags, Depth, etalon);
 				}
 			}
@@ -133,9 +141,10 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 			string name = Path.Combine("DebugOutputs", "MismatchedAsset_" + Type.Name);
 			string fullName;
 
-			for (int i = 0; File.Exists(fullName = name + "_" + i); i++);
+			for (int i = 0; File.Exists(fullName = name + "_" + i); i++) ;
 
 			File.WriteAllBytes(fullName, reader.ToArray());
+			File.WriteAllLines(fullName + ".log", debugLines);
 		}
 
 		private static void LogMonoBehaviourMismatch(SerializableStructure structure, int actual, int expected)

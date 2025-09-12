@@ -5,12 +5,14 @@ using AssetRipper.GUI.Exceptions;
 using AssetRipper.GUI.Extensions;
 using AssetRipper.GUI.Managers;
 using AssetRipper.Import.Logging;
+using AssetRipper.SourceGenerated.NativeEnums.Images.Crunch;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Text.Json.Nodes;
 
 namespace AssetRipper.GUI
 {
@@ -170,17 +172,106 @@ namespace AssetRipper.GUI
 
 			string[]? filesDropped = e.Data.GetFileNames()?.ToArray();
 
+			if (filesDropped != null && filesDropped.Length == 1 && Path.GetExtension(filesDropped[0]) == ".xapk")
+			{
+				Logger.Log(LogType.Info, LogCategory.Import, $"Detected XAPK file. (file drop)'");
+				DoLoadXAPK(filesDropped);
+				return;
+			}
+
 			DoLoad(filesDropped);
+		}
+
+		private void DoLoadXAPK(string[]? files)
+		{
+			if (files.Length < 1) return;
+
+			_ = Task.Run(() =>
+			{
+				string xapkExtractPath = "temp/XAPK_EXTRACT_" + DateTime.Now.ToString("yyyyMMddHHmm");
+				Directory.CreateDirectory(xapkExtractPath);
+
+				try
+				{
+					Logger.Log(LogType.Info, LogCategory.Import, $"Decompressing '{files[0]}'");
+
+					if (!File.Exists(files[0]))
+					{
+						Logger.Log(LogType.Error, LogCategory.Import, $"File '{files[0]}' does not exist.");
+						throw new Exception($"File '{files[0]}' does not exist. Have you tried importing multiple folders?");
+					}
+
+					LoadingText = "Decompressing " + files[0];
+
+					ZipFile.ExtractToDirectory(files[0], xapkExtractPath, true);
+
+					string manifestPath = Path.Combine(xapkExtractPath, "manifest.json");
+
+					if (!File.Exists(manifestPath))
+					{
+						throw new FileNotFoundException($"unable to find XAPK's manifest file at path: '{manifestPath}'");
+					}
+
+					JsonNode? index = JsonNode.Parse(File.ReadAllText(manifestPath)) ?? throw new Exception("Unable to parse the manifest JSON.");
+					JsonNode? xapkVersion = index["xapk_version"];
+
+					if (xapkVersion == null)
+					{
+						Logger.Log(LogType.Warning, LogCategory.Import, "Unable to locate XAPK version in the manifest");
+					}
+					else if (xapkVersion.GetValue<int>() != 1)
+					{
+						Logger.Log(LogType.Warning, LogCategory.Import, $"XAPK version is not {xapkVersion} which is not supported.");
+					}
+
+					List<string> filesToExtract = [];
+
+					JsonNode? packageName = index["package_name"] ?? throw new Exception("Package name cannot be found.");
+
+					filesToExtract.Add(Path.Combine(xapkExtractPath, $"{packageName}.apk"));
+
+					JsonNode? expansions = index["expansions"];
+
+					if (expansions == null)
+					{
+						Logger.Log(LogType.Warning, LogCategory.Import, "Unable to locate expansions in the manifest");
+					}
+					else
+					{
+						foreach (JsonNode? v in expansions.AsArray())
+						{
+							if (v == null)
+							{
+								Logger.Log(LogType.Warning, LogCategory.Import, "An entry in expansions is null.");
+								continue;
+							}
+
+							JsonNode? file = v["file"];
+							if (file == null)
+							{
+								Logger.Log(LogType.Warning, LogCategory.Import, "An entry in expansions doesnt have file node or its null.");
+								continue;
+							}
+							Logger.Log(LogType.Info, LogCategory.Import, $"found expansion file: '{file}'");
+							filesToExtract.Add(Path.Combine(xapkExtractPath, file.ToString()));
+						}
+					}
+
+					DoLoad([.. filesToExtract]);
+				}
+				catch (Exception ex)
+				{
+					LoadingText = string.Empty;
+					this.ShowPopup($"Exception on importing XAPK: {ex.Message}", MainWindow.Instance.LocalizationManager["error"]);
+				}
+			});
 		}
 
 		private void DoLoadArchives(string[]? filesDropped)
 		{
-			if (filesDropped == null || filesDropped.Length < 1)
-			{
-				return;
-			}
+			if (filesDropped == null || filesDropped.Length < 1) return;
 
-			new Thread(() =>
+			_ = Task.Run(() =>
 			{
 				string path = "temp/ZIP_COMBINE_" + DateTime.Now.ToString("yyyyMMddHHmm");
 
@@ -208,11 +299,7 @@ namespace AssetRipper.GUI
 					LoadingText = string.Empty;
 					this.ShowPopup($"Exception on combining archives: {ex.Message}", MainWindow.Instance.LocalizationManager["error"]);
 				}
-			})
-			{
-				IsBackground = true,
-				Name = "Background Decompressing Thread"
-			}.Start();
+			});
 		}
 
 		private void DoLoad(string[]? filesDropped)
@@ -464,53 +551,7 @@ namespace AssetRipper.GUI
 				.Where(s => !string.IsNullOrEmpty(s))
 				.ToArray();
 
-			if (result.Length < 1) return;
-
-			_ = Task.Run(() =>
-			{
-				string xapkExtractPath = "temp/XAPK_" + DateTime.Now.ToString("yyyyMMddHHmm");
-				Directory.CreateDirectory(xapkExtractPath);
-
-				try
-				{
-					Logger.Log(LogType.Info, LogCategory.Import, $"Decompressing '{result[0]}'");
-
-					if (!File.Exists(result[0]))
-					{
-						Logger.Log(LogType.Error, LogCategory.Import, $"File '{result[0]}' does not exist.");
-						throw new Exception($"File '{result[0]}' does not exist. Have you tried importing multiple folders?");
-					}
-
-					LoadingText = "Decompressing " + result[0];
-
-					ZipFile.ExtractToDirectory(result[0], xapkExtractPath, true);
-
-					// Post Extract
-					if (!Directory.Exists(Path.Combine(xapkExtractPath, "Android/obb")))
-						throw new Exception("Unable to find Android/obb directory");
-
-					string? packageName = Path.GetFileName(Directory.GetDirectories(Path.Combine(xapkExtractPath, "Android/obb"))[0]);
-
-					if (packageName == null) throw new Exception("Package name is null");
-					Logger.Log(LogType.Info, LogCategory.Import, packageName);
-
-					string obbFile = Directory.GetFiles(Path.Combine(xapkExtractPath, "Android/obb", packageName))[0];
-
-					string xapkPostExtractPath = "temp/XAPK_POST_" + DateTime.Now.ToString("yyyyMMddHHmm");
-					Directory.CreateDirectory(xapkPostExtractPath);
-
-					ZipFile.ExtractToDirectory(obbFile, xapkPostExtractPath, true);
-
-					ZipFile.ExtractToDirectory(Path.Combine(xapkExtractPath, packageName + ".apk"), xapkPostExtractPath, true);
-
-					DoLoad([xapkPostExtractPath]);
-				}
-				catch (Exception ex)
-				{
-					LoadingText = string.Empty;
-					this.ShowPopup($"Exception on importing XAPK: {ex.Message}", MainWindow.Instance.LocalizationManager["error"]);
-				}
-			});
+			DoLoadXAPK(result);
 		}
 
 		//Called from UI

@@ -29,12 +29,12 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 
 		public void Read(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags, int depth, in SerializableType.Field etalon)
 		{
-			if (version.IsLess(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
+			if (version.LessThan(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
 			{
 				return;
 			}
 
-			if (version.IsLess(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
+			if (version.LessThan(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
 			{
 				return;
 			}
@@ -405,12 +405,12 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 
 		public YamlNode ExportYaml(IExportContainer container, in SerializableType.Field etalon)
 		{
-			if (container.Version.IsLess(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
+			if (container.Version.LessThan(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
 			{
 				return null;
 			}
 
-			if (container.Version.IsLess(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
+			if (container.Version.LessThan(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
 			{
 				return null;
 			}
@@ -533,12 +533,12 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 
 		internal void CopyValues(SerializableField source, UnityVersion version, int depth, in SerializableType.Field etalon, PPtrConverter converter)
 		{
-			if (version.IsLess(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
+			if (version.LessThan(5, 0, 0) && !supportedUnity4Types.Contains(etalon.Type.Type))
 			{
 				return;
 			}
 
-			if (version.IsLess(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
+			if (version.LessThan(4, 5, 0) && etalon.IsStruct && !etalon.Type.IsEngineStruct())
 			{
 				return;
 			}

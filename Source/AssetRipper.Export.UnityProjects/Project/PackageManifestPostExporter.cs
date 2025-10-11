@@ -92,7 +92,7 @@ namespace AssetRipper.Export.UnityProjects.Project
 			Directory.CreateDirectory(packagesDirectory);
 			using Stream fileStream = File.Create(Path.Combine(packagesDirectory, "manifest.json"));
 			using StreamWriter writer = new InvariantStreamWriter(fileStream, new UTF8Encoding(false));
-			if (ripper.Settings.Version.IsGreaterEqual(2019, 2))
+			if (ripper.Settings.Version.GreaterThanOrEquals(2019, 2))
 			{
 				writer.Write(PackageJsonContentNew);
 			}

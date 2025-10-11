@@ -320,7 +320,7 @@ namespace AssetRipper.Export.UnityProjects.Textures
 
 				case TextureFormat.ARGB4444:
 					// I think this is right??
-					if (version.IsLess(4, 0, 0))
+					if (version.LessThan(4, 0, 0))
 					{
 						RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(inputSpan, width, height, outputSpan);
 					}

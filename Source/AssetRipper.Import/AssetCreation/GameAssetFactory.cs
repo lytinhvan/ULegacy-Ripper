@@ -4,6 +4,7 @@ using AssetRipper.Assets.IO;
 using AssetRipper.Assets.IO.Reading;
 using AssetRipper.Assets.Metadata;
 using AssetRipper.Import.Logging;
+using AssetRipper.Assets.Collections;
 using AssetRipper.Import.Structure.Assembly.Managers;
 using AssetRipper.Import.Structure.Assembly.Mono;
 using AssetRipper.Import.Structure.Assembly.Serializable;
@@ -45,7 +46,7 @@ namespace AssetRipper.Import.AssetCreation
 
 		public override IUnityObjectBase? ReadAsset(AssetInfo assetInfo, ReadOnlyArraySegment<byte> assetData, SerializedType? assetType)
 		{
-			if (assetInfo.Collection.Version.IsEqual(0, 0, 0))
+			if (assetInfo.Collection.Version.Equals(0, 0, 0))
 			{
 				//Assets with a stripped version can't be read.
 				return new UnreadableObject(assetInfo, assetData.ToArray());

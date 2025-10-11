@@ -17,7 +17,7 @@ namespace AssetRipper.Export.UnityProjects.Project
 			using Stream fileStream = File.Create(Path.Combine(projectSettingsDirectory, "ProjectVersion.txt"));
 			using StreamWriter writer = new InvariantStreamWriter(fileStream, new UTF8Encoding(false));
 			writer.Write($"m_EditorVersion: {version}\n");
-			if (version.Equals(5))
+			if (version.IsEqual(5))
 			{
 				//Unity 5 has an extra line
 				//Even on beta versions, this always seems to be zero.

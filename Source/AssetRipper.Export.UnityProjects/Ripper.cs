@@ -251,7 +251,7 @@ namespace AssetRipper.Export.UnityProjects
 			}
 
 			//Texture Array exporters
-			if (Settings.Version.GreaterThanOrEquals(2020, 2))
+			if (Settings.Version.IsGreaterEqual(2020, 2))
 			{
 				TextureArrayAssetExporter textureArrayExporter = new(Settings);
 				projectExporter.OverrideExporter<ICubemapArray>(textureArrayExporter);
@@ -276,7 +276,7 @@ namespace AssetRipper.Export.UnityProjects
 			projectExporter.OverrideExporter<IShader>(new SimpleShaderExporter());
 
 			//Audio exporters
-			if (Settings.Version.GreaterThan(4)) 
+			if (Settings.Version.IsGreater(4)) 
 			{
 				projectExporter.OverrideExporter<IAudioClip>(new YamlAudioExporter());
 				if (Settings.AudioExportFormat == AudioExportFormat.Native)

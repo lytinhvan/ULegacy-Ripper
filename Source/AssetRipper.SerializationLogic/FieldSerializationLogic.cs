@@ -1,4 +1,4 @@
-using AsmResolver.PE.DotNet.Metadata.Tables;
+using AsmResolver.PE.DotNet.Metadata.Tables.Rows;
 using AssetRipper.SerializationLogic.Extensions;
 
 namespace AssetRipper.SerializationLogic

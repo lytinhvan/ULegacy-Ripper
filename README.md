@@ -6,6 +6,9 @@ U4X-ARipper is a tool for extracting assets from Unity serialized files (*CAB-*\
 
 Unity `3.5.0` to `2022.3.X`
 
+# Let's try
+https://zombie-gunfire.cn.uptodown.com/android/dw/2214299
+
 # Legal Disclaimers
 
 U4X-ARipper is licensed under the [MIT License](License.md).
